@@ -1,0 +1,34 @@
+name: Memories App Client Deploy
+on:
+  push:
+    branches: ['main']
+
+jobs:
+  deploy-server:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/Checkout@v2
+
+      - name: SSH to server for deployment
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |-
+            sudo apt update
+            sudo apt install git
+            git clone https://github.com/eniolastyle/memories-client.git
+            cd memories-client
+            sh script.sh
+            npm install
+            rm -rf build
+            npm run build
+            sudo pm2 kill
+            pm2 serve build/ 3000 --name "react-build" --spa
+            sudo rm -rf /etc/nginx/sites-available/default
+            sudo cp default /etc/nginx/sites-available/ -r
+            sudo systemctl stop nginx || true
+            sudo systemctl start nginx
