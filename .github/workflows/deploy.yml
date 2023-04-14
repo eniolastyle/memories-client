@@ -40,7 +40,8 @@ jobs:
             rm -rf build
             npm run build
             sudo pm2 kill
-            pm2 serve build/ 3000 --name "react-build" --spa -f
+            kill $(lsof -t -i :3000)
+            pm2 serve build/ 3000 -f --name "react-build" --spa
             sudo rm -rf /etc/nginx/sites-available/default
             sudo cp default /etc/nginx/sites-available/ -r
             sudo systemctl kill nginx || true
